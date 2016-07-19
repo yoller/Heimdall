@@ -733,6 +733,166 @@ public class Heimdall {
 
         return nil
     }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // MARK: - AES128 & RSA by Giovanni Trezzi
+    
+    func generateIV128bitAES() -> NSData? {
+        
+        let algorithm = CCAlgorithm(kCCAlgorithmAES128)
+        let ivSize = Heimdall.blockSize(algorithm)
+        return Heimdall.generateRandomBytes(ivSize)
+        
+    }
+    
+    
+    func generate128bitAESKey() -> NSData? {
+        
+        let keySize = kCCKeySizeAES128
+        return generateRandomBytes(count: keySize)
+        
+    }
+    
+    public func encryptRSA(data: NSData) -> NSData? {
+        
+        if let publicKey = self.obtainKey(.Public) {
+            
+            let blockSize = SecKeyGetBlockSize(publicKey)
+            
+            // Final resulting data
+            let result = NSMutableData()
+            
+            // Encrypt data
+            var encryptedData = [UInt8](count: Int(blockSize), repeatedValue: 0)
+            var encryptedLength = blockSize
+            let dataByte = UnsafePointer<UInt8>(data.bytes)
+            
+            switch SecKeyEncrypt(publicKey, .PKCS1, dataByte, Int(data.length), &encryptedData, &encryptedLength) {
+                
+            case noErr:
+                result.appendBytes(&encryptedData, length: encryptedLength)
+            default:
+                return nil
+            }
+            
+            // result.appendData(encrypted)  // and not appending here to make size correct.!!!!!
+            
+            return result
+            //}
+        }
+        
+        return nil
+    }
+    
+    func encryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
+        let dataBytes = UnsafePointer<UInt8>(data.bytes)
+        let dataLength = data.length
+        
+        if let iv = iv {
+            
+            if let result = NSMutableData(length: dataLength + key.length + iv.length) {
+                let keyData = UnsafePointer<UInt8>(key.bytes)
+                let keyLength = size_t(key.length)
+                let ivData = UnsafePointer<UInt8>(iv.bytes)
+                
+                let encryptedData = UnsafeMutablePointer<UInt8>(result.mutableBytes)
+                let encryptedDataLength = size_t(result.length)
+                
+                var encryptedLength: size_t = 0
+                
+                let status = CCCrypt(CCOperation(kCCEncrypt), algorithm, CCOptions(kCCOptionPKCS7Padding | kCCModeCBC), keyData, keyLength, ivData, dataBytes, dataLength, encryptedData, encryptedDataLength, &encryptedLength)
+                
+                if status == Int32(kCCSuccess) {
+                    result.length = Int(encryptedLength)
+                    return result
+                }
+            }
+            
+        } else {
+            
+            if let result = NSMutableData(length: dataLength + key.length) {
+                let keyData = UnsafePointer<UInt8>(key.bytes)
+                let keyLength = size_t(key.length)
+                
+                let encryptedData = UnsafeMutablePointer<UInt8>(result.mutableBytes)
+                let encryptedDataLength = size_t(result.length)
+                
+                var encryptedLength: size_t = 0
+                
+                let status = CCCrypt(CCOperation(kCCEncrypt), algorithm, CCOptions(kCCOptionPKCS7Padding | kCCModeCBC), keyData, keyLength, nil, dataBytes, dataLength, encryptedData, encryptedDataLength, &encryptedLength)
+                
+                if status == Int32(kCCSuccess) {
+                    result.length = Int(encryptedLength)
+                    return result
+                }
+            }
+            
+        }
+        
+        return nil
+    }
+    
+    func decryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
+        let encryptedData = UnsafePointer<UInt8>(data.bytes)
+        let encryptedDataLength = data.length
+        
+        if let iv = iv {
+            
+            if let result = NSMutableData(length: encryptedDataLength) {
+                let keyData = UnsafePointer<UInt8>(key.bytes)
+                let keyLength = size_t(key.length)
+                let ivData = UnsafePointer<UInt8>(iv.bytes)
+                
+                let decryptedData = UnsafeMutablePointer<UInt8>(result.mutableBytes)
+                let decryptedDataLength = size_t(result.length)
+                
+                var decryptedLength: size_t = 0
+                
+                let status = CCCrypt(CCOperation(kCCDecrypt), algorithm, CCOptions(kCCOptionPKCS7Padding | kCCModeCBC), keyData, keyLength, ivData, encryptedData, encryptedDataLength, decryptedData, decryptedDataLength, &decryptedLength)
+                
+                if UInt32(status) == UInt32(kCCSuccess) {
+                    result.length = Int(decryptedLength)
+                    return result
+                }
+            }
+            
+        } else {
+            
+            if let result = NSMutableData(length: encryptedDataLength) {
+                let keyData = UnsafePointer<UInt8>(key.bytes)
+                let keyLength = size_t(key.length)
+                
+                let decryptedData = UnsafeMutablePointer<UInt8>(result.mutableBytes)
+                let decryptedDataLength = size_t(result.length)
+                
+                var decryptedLength: size_t = 0
+                
+                let status = CCCrypt(CCOperation(kCCDecrypt), algorithm, CCOptions(kCCOptionPKCS7Padding | kCCModeCBC), keyData, keyLength, nil, encryptedData, encryptedDataLength, decryptedData, decryptedDataLength, &decryptedLength)
+                
+                if UInt32(status) == UInt32(kCCSuccess) {
+                    result.length = Int(decryptedLength)
+                    return result
+                }
+                
+            }
+            
+        }
+        
+        return nil
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
 }
 
 ///
@@ -968,5 +1128,7 @@ private extension NSData {
         
         return self.subdataWithRange(range)
     }
+    
+    
 }
 
