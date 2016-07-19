@@ -758,7 +758,7 @@ public class Heimdall {
     func generate128bitAESKey() -> NSData? {
         
         let keySize = kCCKeySizeAES128
-        return generateRandomBytes(count: keySize)
+        return Heimdall.generateRandomBytes(keySize)
         
     }
     
