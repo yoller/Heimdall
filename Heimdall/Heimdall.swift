@@ -746,7 +746,7 @@ public class Heimdall {
     
     // MARK: - AES128 & RSA by Giovanni Trezzi
     
-    func generateIV128bitAES() -> NSData? {
+    public func generateIV128bitAES() -> NSData? {
         
         let algorithm = CCAlgorithm(kCCAlgorithmAES128)
         let ivSize = Heimdall.blockSize(algorithm)
@@ -755,7 +755,7 @@ public class Heimdall {
     }
     
     
-    func generate128bitAESKey() -> NSData? {
+    public func generate128bitAESKey() -> NSData? {
         
         let keySize = kCCKeySizeAES128
         return Heimdall.generateRandomBytes(keySize)
@@ -793,7 +793,7 @@ public class Heimdall {
         return nil
     }
     
-    func encryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
+    public func encryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
         let dataBytes = UnsafePointer<UInt8>(data.bytes)
         let dataLength = data.length
         
@@ -841,7 +841,7 @@ public class Heimdall {
         return nil
     }
     
-    func decryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
+    public func decryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
         let encryptedData = UnsafePointer<UInt8>(data.bytes)
         let encryptedDataLength = data.length
         
