@@ -793,7 +793,9 @@ public class Heimdall {
         return nil
     }
     
-    public func encryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
+    public func encryptAES(data: NSData, key: NSData, iv: NSData? = nil) -> NSData? {
+        
+        let algorithm = CCAlgorithm(kCCAlgorithmAES128)
         let dataBytes = UnsafePointer<UInt8>(data.bytes)
         let dataLength = data.length
         
@@ -839,9 +841,12 @@ public class Heimdall {
         }
         
         return nil
+        
     }
     
-    public func decryptAES(data: NSData, key: NSData, iv: NSData? = nil, algorithm: CCAlgorithm) -> NSData? {
+    public func decryptAES(data: NSData, key: NSData, iv: NSData? = nil) -> NSData? {
+        
+        let algorithm = CCAlgorithm(kCCAlgorithmAES128)
         let encryptedData = UnsafePointer<UInt8>(data.bytes)
         let encryptedDataLength = data.length
         
