@@ -774,7 +774,7 @@ public class Heimdall {
             let encryptedDataBytes = UnsafeMutablePointer<UInt8>(encryptedData!.mutableBytes)
             var encryptedDataLen = encryptedData!.length
             
-            switch SecKeyEncrypt(publicKey, .PKCS1, dataByte, data.length, encryptedDataBytes, &encryptedDataLen) {
+            switch SecKeyEncrypt(publicKey, .OAEP, dataByte, data.length, encryptedDataBytes, &encryptedDataLen) {
                 
             case noErr:
                 return encryptedData
@@ -800,7 +800,7 @@ public class Heimdall {
                 let decryptedDataBytes = UnsafeMutablePointer<UInt8>(decryptedData.mutableBytes)
                 var decryptedDataLength = decryptedData.length
                 
-                let decryptionStatus = SecKeyDecrypt(key, .PKCS1, encryptedData, encryptedDataLenght, decryptedDataBytes, &decryptedDataLength)
+                let decryptionStatus = SecKeyDecrypt(key, .OAEP, encryptedData, encryptedDataLenght, decryptedDataBytes, &decryptedDataLength)
                 
                 if decryptionStatus == noErr {
                     
